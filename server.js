@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 const env = require('./config/env');
 const db = require('./config/db');
 const redis = require('./config/redis');
+const keepAlive = require('./config/keepAlive');
 const logger = require('./utils/logger');
 
 const cors = require('./middleware/global/cors');
@@ -16,12 +17,9 @@ const errorHandler = require('./middleware/global/errorHandler');
 const app = express();
 
 app.set('trust proxy', true);
-
 app.use(cors);
-
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-
 app.use(requestLogger);
 
 app.get('/', (req, res) => {
@@ -29,6 +27,7 @@ app.get('/', (req, res) => {
     name: 'HDM Technologies API',
     version: '2.0.0',
     status: 'running',
+    environment: env.nodeEnv,
     endpoints: {
       hdm: '/hdm/api',
       smartgen: '/smartgen/api',
@@ -54,7 +53,7 @@ app.get('/health', (req, res) => {
     status: 'OK',
     environment: env.nodeEnv,
     database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
-    redis: redis.isReady() ? 'connected' : (env.redisEnabled ? 'disconnected' : 'disabled'),
+    redis: redis.isReady() ? 'connected' : env.redisEnabled ? 'disconnected' : 'disabled',
     uptime: process.uptime(),
     timestamp: new Date().toISOString(),
   });
@@ -75,7 +74,6 @@ const start = async () => {
   console.log('');
 
   logger.info(`Environment: ${env.nodeEnv}`);
-  logger.info(`CORS origins: ${env.allowedOrigins.join(', ') || '(none)'}${env.nodeEnv === 'development' ? ' + localhost wildcard' : ''}`);
 
   logger.info('Connecting to MongoDB…');
   await db.connect();
@@ -86,17 +84,21 @@ const start = async () => {
   server = app.listen(env.port, () => {
     logger.info(`Server running on port ${env.port}`);
     console.log('');
-    console.log(`  Local:    http://localhost:${env.port}`);
-    console.log(`  HDM:      http://localhost:${env.port}/hdm/api`);
-    console.log(`  SmartGen: http://localhost:${env.port}/smartgen/api`);
-    console.log(`  Health:   http://localhost:${env.port}/health`);
+    console.log(`  Base:     ${env.baseUrl}`);
+    console.log(`  HDM:      ${env.baseUrl}/hdm/api`);
+    console.log(`  SmartGen: ${env.baseUrl}/smartgen/api`);
+    console.log(`  Health:   ${env.baseUrl}/health`);
     console.log('');
+
+    keepAlive.start();
   });
 };
 
 const shutdown = async (signal) => {
   console.log('');
   logger.info(`${signal} received — shutting down…`);
+
+  keepAlive.stop();
 
   try {
     const { stopAll } = require('./schedulers');

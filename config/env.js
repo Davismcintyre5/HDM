@@ -12,6 +12,11 @@ const required = [
   'CLOUDINARY_CLOUD_NAME',
   'CLOUDINARY_API_KEY',
   'CLOUDINARY_API_SECRET',
+  'MPESA_CONSUMER_KEY',
+  'MPESA_CONSUMER_SECRET',
+  'MPESA_SHORTCODE',
+  'MPESA_PASSKEY',
+  'MPESA_CALLBACK_URL',
 ];
 
 const missing = required.filter((key) => !process.env[key]);
@@ -48,6 +53,11 @@ module.exports = {
 
   smsEnabled: process.env.SMS_ENABLED === 'true',
 
+  keepAlive: {
+    enabled: process.env.KEEP_ALIVE_ENABLED === 'true',
+    verbose: process.env.KEEP_ALIVE_VERBOSE === 'true',
+  },
+
   allowedOrigins: splitList(process.env.ALLOWED_ORIGINS),
 
   adminEmail: process.env.ADMIN_EMAIL || '',
@@ -71,5 +81,21 @@ module.exports = {
     apiKey: process.env.CLOUDINARY_API_KEY,
     apiSecret: process.env.CLOUDINARY_API_SECRET,
     folder: 'hdm',
+  },
+
+  mpesa: {
+    env: process.env.MPESA_ENV || 'sandbox',
+    baseUrl:
+      process.env.MPESA_ENV === 'production'
+        ? 'https://api.safaricom.co.ke'
+        : 'https://sandbox.safaricom.co.ke',
+    consumerKey: process.env.MPESA_CONSUMER_KEY,
+    consumerSecret: process.env.MPESA_CONSUMER_SECRET,
+    shortcode: process.env.MPESA_SHORTCODE,
+    tillNumber: process.env.MPESA_TILL_NUMBER || '',
+    passkey: process.env.MPESA_PASSKEY,
+    callbackUrl: process.env.MPESA_CALLBACK_URL,
+    transactionType:
+      process.env.MPESA_TRANSACTION_TYPE || 'CustomerBuyGoodsOnline',
   },
 };

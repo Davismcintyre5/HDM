@@ -20,5 +20,6 @@ router.use('/cloudinary', require('./cloudinaryRoutes'));
 router.use('/mongodb', require('./mongodbRoutes'));
 router.use('/health', require('./healthRoutes'));
 router.use('/smartgen-users', require('./smartgenUsersRoutes'));
+router.use('/payment-requests', require('./paymentRequestsRoutes'));
 
 module.exports = router;

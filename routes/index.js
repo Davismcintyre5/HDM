@@ -14,5 +14,6 @@ router.use('/hdm/api/admin', require('./hdm'));
 //router.use('/smartgen/api/site', require('./public/smartgenSiteRoutes'));
 
 //router.use('/smartgen/api', require('./smartgen'));
+router.use('/hdm/api/payments', require('./public/mpesaCallbackRoutes'));
 
 module.exports = router;
