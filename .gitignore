@@ -1,46 +1,91 @@
-# Dependencies
+# ============================================
+# DEPENDENCIES
+# ============================================
 node_modules/
+client/node_modules/
 
-# Environment
+# ============================================
+# ENVIRONMENT
+# ============================================
 .env
 .env.local
 .env.production
+.env.development
+.env.staging
+client/.env
+client/.env.local
+client/.env.production
+client/.env.development
 
-# Build output
+# ============================================
+# BUILD OUTPUT
+# ============================================
 dist/
 build/
+# Note: client/dist IS tracked (built artifacts served by Node)
 
-# Logs
+# ============================================
+# LOGS
+# ============================================
 *.log
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
-# Runtime data
+# ============================================
+# RUNTIME DATA
+# ============================================
 backups/
 tmp/
+temp/
 uploads/*
 !uploads/.gitkeep
 
+# ============================================
 # OS
+# ============================================
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# IDE
-.vscode/
+# ============================================
+# IDE / EDITORS
+# ============================================
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
 .idea/
 *.swp
 *.swo
+*.sublime-project
+*.sublime-workspace
 
-# Testing
+# ============================================
+# TESTING
+# ============================================
 coverage/
+.nyc_output/
 
-# Certificates
+# ============================================
+# CERTIFICATES / SECRETS
+# ============================================
 *.pem
 *.key
 *.crt
+*.p12
+*.pfx
 
-# Cloudinary
+# ============================================
+# CLOUDINARY / TOOLS
+# ============================================
 .cloudinary
+.vercel
+.netlify
 
-# Vite
-client-pos/dist/
-client-admin/dist/
+# ============================================
+# MISC
+# ============================================
+.history/
+*.orig
+*.rej

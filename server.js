@@ -1,6 +1,8 @@
 require('./config/env');
 require('./scripts/dnsSet');
 
+const path = require('path');
+const fs = require('fs');
 const express = require('express');
 const mongoose = require('mongoose');
 const env = require('./config/env');
@@ -16,26 +18,16 @@ const errorHandler = require('./middleware/global/errorHandler');
 
 const app = express();
 
-app.set('trust proxy', true);
+app.set('trust proxy', 1);
+
 app.use(cors);
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(requestLogger);
 
-app.get('/', (req, res) => {
-  res.json({
-    name: 'HDM Technologies API',
-    version: '2.0.0',
-    status: 'running',
-    environment: env.nodeEnv,
-    endpoints: {
-      hdm: '/hdm/api',
-      smartgen: '/smartgen/api',
-      health: '/health',
-    },
-  });
-});
-
+/* ============================================================
+   Info + health endpoints
+   ============================================================ */
 app.get('/api', (req, res) => {
   res.json({
     name: 'HDM Technologies API',
@@ -52,24 +44,88 @@ app.get('/health', (req, res) => {
   res.json({
     status: 'OK',
     environment: env.nodeEnv,
-    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
-    redis: redis.isReady() ? 'connected' : env.redisEnabled ? 'disconnected' : 'disabled',
+    database:
+      mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    redis: redis.isReady()
+      ? 'connected'
+      : env.redisEnabled
+      ? 'disconnected'
+      : 'disabled',
     uptime: process.uptime(),
     timestamp: new Date().toISOString(),
   });
 });
 
+/* ============================================================
+   API routes
+   ============================================================ */
 app.use(require('./routes'));
 
+/* ============================================================
+   Serve built client from client/dist
+   ============================================================ */
+const clientDist = path.join(__dirname, 'client', 'dist');
+const clientIndex = path.join(clientDist, 'index.html');
+
+if (fs.existsSync(clientDist)) {
+  app.use(
+    express.static(clientDist, {
+      index: false,
+      maxAge: '1h',
+      setHeaders: (res, filePath) => {
+        // Immutable cache for hashed Vite assets
+        if (/[.-][a-f0-9]{6,}\.(js|css)$/i.test(filePath)) {
+          res.setHeader(
+            'Cache-Control',
+            'public, max-age=31536000, immutable'
+          );
+        }
+      },
+    })
+  );
+
+  // SPA fallback — everything except API prefixes returns index.html
+  app.get(/^(?!\/(hdm\/api|smartgen\/api|api|health)).*/, (req, res, next) => {
+    if (!fs.existsSync(clientIndex)) return next();
+    res.sendFile(clientIndex);
+  });
+
+  logger.info(`Serving client from ${clientDist}`);
+} else {
+  logger.info(
+    'Client dist not found — API only. Run "npm run build" to build the client.'
+  );
+
+  app.get('/', (req, res) => {
+    res.json({
+      name: 'HDM Technologies API',
+      version: '2.0.0',
+      status: 'running',
+      note: 'Client not built. Run "npm run build".',
+      endpoints: {
+        hdm: '/hdm/api',
+        smartgen: '/smartgen/api',
+        health: '/health',
+      },
+    });
+  });
+}
+
+/* ============================================================
+   404 + error handling
+   ============================================================ */
 app.use(notFound);
 app.use(errorHandler);
 
+/* ============================================================
+   Startup
+   ============================================================ */
 let server;
 
 const start = async () => {
   console.log('');
   console.log('  ╔══════════════════════════════════════╗');
-  console.log('  ║        HDM Technologies API          ║');
+  console.log('  ║        HDM Technologies              ║');
   console.log('  ╚══════════════════════════════════════╝');
   console.log('');
 
@@ -85,7 +141,8 @@ const start = async () => {
     logger.info(`Server running on port ${env.port}`);
     console.log('');
     console.log(`  Base:     ${env.baseUrl}`);
-    console.log(`  HDM:      ${env.baseUrl}/hdm/api`);
+    console.log(`  Client:   ${env.baseUrl}`);
+    console.log(`  HDM API:  ${env.baseUrl}/hdm/api`);
     console.log(`  SmartGen: ${env.baseUrl}/smartgen/api`);
     console.log(`  Health:   ${env.baseUrl}/health`);
     console.log('');
@@ -94,6 +151,9 @@ const start = async () => {
   });
 };
 
+/* ============================================================
+   Graceful shutdown
+   ============================================================ */
 const shutdown = async (signal) => {
   console.log('');
   logger.info(`${signal} received — shutting down…`);

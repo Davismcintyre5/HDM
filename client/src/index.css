@@ -1,0 +1,121 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9fafb;
+  --bg-tertiary: #f3f4f6;
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --text-muted: #9ca3af;
+  --border-color: #e5e7eb;
+  --accent: #1e6ef0;
+}
+
+.dark {
+  --bg-primary: #0f1117;
+  --bg-secondary: #1a1d25;
+  --bg-tertiary: #2d3140;
+  --text-primary: #f3f4f6;
+  --text-secondary: #d1d5db;
+  --text-muted: #6b7280;
+  --border-color: #2d3140;
+  --accent: #3b82f6;
+}
+
+.theme-hdm {
+  --accent: #1e6ef0;
+}
+
+.theme-hdm.dark {
+  --accent: #3b82f6;
+}
+
+.theme-smartgen {
+  --accent: #b45309;
+}
+
+.theme-smartgen.dark {
+  --accent: #f59e0b;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  -webkit-tap-highlight-color: transparent;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* Crisp text rendering everywhere — applies to preview and PDF captures */
+html, body, * {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: geometricPrecision;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Print */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* Live preview wrapper — forces 1:1 rendering, no transform, no scaling */
+.preview-surface {
+  background: #ffffff;
+  color: #111827;
+  font-family: 'Times New Roman', Georgia, serif;
+  line-height: 1.5;
+  width: 100%;
+  max-width: 100%;
+  transform: none !important;
+  zoom: 1 !important;
+  filter: none !important;
+  will-change: auto !important;
+  backface-visibility: visible !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: geometricPrecision;
+}
+
+.preview-surface * {
+  transform: none !important;
+  zoom: 1 !important;
+  filter: none !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: geometricPrecision;
+}
+
+/* Ensure the preview's headings render at full weight/opacity */
+.preview-surface h1,
+.preview-surface h2,
+.preview-surface h3,
+.preview-surface h4 {
+  opacity: 1 !important;
+  -webkit-text-stroke: 0 !important;
+}
