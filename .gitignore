@@ -20,9 +20,11 @@ client/.env.development
 # ============================================
 # BUILD OUTPUT
 # ============================================
-dist/
-build/
-# Note: client/dist IS tracked (built artifacts served by Node)
+# Anchored to root — does NOT match client/dist
+/dist/
+/build/
+
+# client/dist IS tracked (built assets served by server.js)
 
 # ============================================
 # LOGS
@@ -77,11 +79,12 @@ coverage/
 *.pfx
 
 # ============================================
-# CLOUDINARY / TOOLS
+# CLOUDINARY / DEPLOY TOOLS
 # ============================================
 .cloudinary
 .vercel
 .netlify
+.render
 
 # ============================================
 # MISC
