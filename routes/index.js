@@ -2,6 +2,8 @@ const router = require('express').Router();
 
 router.use('/hdm/api/admin', require('./hdm'));
 
+router.use('/hdm/api/payments', require('./public/mpesaCallbackRoutes'));   // ← ADD THIS
+
 router.use('/hdm/api/ai', require('./public/hdmAiRoutes'));
 router.use('/hdm/api/apps', require('./public/hdmAppsRoutes'));
 router.use('/hdm/api/company', require('./public/hdmCompanyRoutes'));
