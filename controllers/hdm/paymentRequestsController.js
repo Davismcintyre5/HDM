@@ -8,7 +8,7 @@ const ApiError = require('../../utils/apiError');
 const { ok, created } = require('../../utils/apiResponse');
 
 /* ============================================================
-   List — with filters and stats
+   List
    ============================================================ */
 exports.list = asyncHandler(async (req, res) => {
   const { status } = req.query;
@@ -45,7 +45,7 @@ exports.get = asyncHandler(async (req, res) => {
 });
 
 /* ============================================================
-   Create — auto-assigns invoice number
+   Create
    ============================================================ */
 exports.create = asyncHandler(async (req, res) => {
   const { reference, description, phone, amount } = req.body;
@@ -75,7 +75,7 @@ exports.create = asyncHandler(async (req, res) => {
 });
 
 /* ============================================================
-   Initiate — sends STK Push
+   Initiate STK
    ============================================================ */
 exports.initiate = asyncHandler(async (req, res) => {
   const request = await HdmPaymentRequest.findById(req.params.id);
@@ -141,7 +141,8 @@ exports.remove = asyncHandler(async (req, res) => {
 });
 
 /* ============================================================
-   PDF — Invoice (any status)
+   PDF — Invoice
+   Stamp date = the invoice's own createdAt
    ============================================================ */
 exports.downloadInvoice = asyncHandler(async (req, res) => {
   const request = await HdmPaymentRequest.findById(req.params.id);
@@ -149,7 +150,8 @@ exports.downloadInvoice = asyncHandler(async (req, res) => {
 
   const brand = await getBrand();
   const invoiceNo = request.invoiceNumber || request.reference;
-  const dateStr = new Date(request.createdAt).toLocaleDateString('en-KE', {
+  const invoiceDate = request.createdAt || new Date();
+  const dateStr = new Date(invoiceDate).toLocaleDateString('en-KE', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -176,6 +178,8 @@ exports.downloadInvoice = asyncHandler(async (req, res) => {
     ],
     brand,
     footerNote: `Invoice ${invoiceNo} · Issued ${dateStr}`,
+    showStamp: true,
+    stampDate: invoiceDate,
   });
 
   res.setHeader('Content-Type', 'application/pdf');
@@ -184,7 +188,8 @@ exports.downloadInvoice = asyncHandler(async (req, res) => {
 });
 
 /* ============================================================
-   PDF — Receipt (success only)
+   PDF — Receipt
+   Stamp date = paidAt (when the payment landed)
    ============================================================ */
 exports.downloadReceipt = asyncHandler(async (req, res) => {
   const request = await HdmPaymentRequest.findById(req.params.id);
@@ -196,13 +201,12 @@ exports.downloadReceipt = asyncHandler(async (req, res) => {
 
   const brand = await getBrand();
   const invoiceNo = request.invoiceNumber || request.reference;
-  const paidAtStr = request.paidAt
-    ? new Date(request.paidAt).toLocaleDateString('en-KE', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      })
-    : '—';
+  const paidAtDate = request.paidAt || request.updatedAt || new Date();
+  const paidAtStr = new Date(paidAtDate).toLocaleDateString('en-KE', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
 
   const buffer = await buildTablePDF({
     title: 'OFFICIAL RECEIPT',
@@ -225,6 +229,8 @@ exports.downloadReceipt = asyncHandler(async (req, res) => {
     ],
     brand,
     footerNote: `Receipt ${request.mpesaReceiptNumber || '—'} · Invoice ${invoiceNo}`,
+    showStamp: true,
+    stampDate: paidAtDate,
   });
 
   res.setHeader('Content-Type', 'application/pdf');
@@ -236,13 +242,8 @@ exports.downloadReceipt = asyncHandler(async (req, res) => {
 });
 
 /* ============================================================
-   PDF — Statement (filtered or full)
-
-   Query params:
-     from   YYYY-MM-DD   (inclusive)
-     to     YYYY-MM-DD   (inclusive)
-     month  YYYY-MM      (overrides from/to)
-     status success|pending|processing|failed|cancelled
+   PDF — Statement
+   Stamp date = today (day the statement was generated)
    ============================================================ */
 exports.downloadStatement = asyncHandler(async (req, res) => {
   const { from, to, month, status } = req.query;
@@ -282,6 +283,7 @@ exports.downloadStatement = asyncHandler(async (req, res) => {
   const requests = await HdmPaymentRequest.find(filter).sort({ createdAt: 1 });
 
   const brand = await getBrand();
+  const today = new Date();
 
   const rows = requests.map((r) => ({
     date: new Date(r.createdAt).toLocaleDateString('en-KE', {
@@ -334,10 +336,13 @@ exports.downloadStatement = asyncHandler(async (req, res) => {
     });
   }
 
-  const periodText = periodLabel.length
-    ? periodLabel.join(' ')
-    : 'Full history';
+  const periodText = periodLabel.length ? periodLabel.join(' ') : 'Full history';
   const statusText = status ? `Status: ${status}` : 'All statuses';
+  const generatedStr = today.toLocaleDateString('en-KE', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
 
   const buffer = await buildTablePDF({
     title: 'PAYMENT STATEMENT',
@@ -345,6 +350,7 @@ exports.downloadStatement = asyncHandler(async (req, res) => {
       { label: 'Period', value: periodText },
       { label: 'Filter', value: statusText },
       { label: 'Records', value: String(requests.length) },
+      { label: 'Generated', value: generatedStr },
     ],
     headers: [
       { key: 'date', label: 'Date', align: 'left' },
@@ -356,6 +362,9 @@ exports.downloadStatement = asyncHandler(async (req, res) => {
     rows,
     brand,
     footerNote: `Statement · ${requests.length} record(s) · ${periodText}`,
+    showStamp: true,
+    showSeal: true,
+    stampDate: today,
   });
 
   const filename = `Statement-${periodText.replace(/[^a-zA-Z0-9-]/g, '_')}.pdf`;

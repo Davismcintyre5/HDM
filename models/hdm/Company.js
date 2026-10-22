@@ -14,16 +14,27 @@ const companySchema = new mongoose.Schema({
   name: { type: String, default: 'HDM Technologies' },
   tagline: { type: String, default: '' },
   description: { type: String, default: '' },
+
   logo: { type: String, default: '' },
   logoDark: { type: String, default: '' },
   favicon: { type: String, default: '' },
+  stampUrl: { type: String, default: '' },
+  stampPublicId: { type: String, default: '' },
+  sealUrl: { type: String, default: '' },
+  sealPublicId: { type: String, default: '' },
+
   email: { type: String, default: '' },
   phone: { type: String, default: '' },
   whatsapp: { type: String, default: '' },
   whatsappMessage: { type: String, default: '' },
+
   address: { type: String, default: '' },
+  poBox: { type: String, default: '' },
+  postalCode: { type: String, default: '' },
   city: { type: String, default: '' },
   country: { type: String, default: '' },
+  website: { type: String, default: '' },
+
   primaryColor: { type: String, default: '#3908e7' },
   secondaryColor: { type: String, default: '#30dd0e' },
   accentColor: { type: String, default: '#10b981' },

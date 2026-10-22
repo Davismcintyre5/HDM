@@ -22,25 +22,48 @@ exports.update = asyncHandler(async (req, res) => {
   return ok(res, company);
 });
 
-const handleLogo = async (req, res, field) => {
+const handleAssetUpload = async (req, res, field) => {
   if (!req.file) throw ApiError.badRequest('No file uploaded');
 
-  const result = await cloudinaryService.uploadFile(req.file.buffer, req.file.originalname, 'logos');
+  const folder =
+    field === 'stampUrl' ? 'stamps' :
+    field === 'sealUrl' ? 'seals' :
+    'logos';
+
+  const result = await cloudinaryService.uploadFile(
+    req.file.buffer,
+    req.file.originalname,
+    folder
+  );
 
   let company = await HdmCompany.findOne();
   if (!company) company = new HdmCompany();
 
-  if (company[field] && company[`${field}PublicId`]) {
-    await cloudinaryService.deleteFile(company[`${field}PublicId`]).catch(() => {});
+  const publicIdField = field.replace('Url', 'PublicId');
+  if (company[field] && company[publicIdField]) {
+    await cloudinaryService.deleteFile(company[publicIdField]).catch(() => {});
   }
 
   company[field] = result.secure_url;
+  company[publicIdField] = result.public_id;
   await company.save();
 
   invalidateBrandCache();
   return ok(res, { [field]: company[field] });
 };
 
-exports.uploadLogo = asyncHandler(async (req, res) => handleLogo(req, res, 'logo'));
-exports.uploadLogoDark = asyncHandler(async (req, res) => handleLogo(req, res, 'logoDark'));
-exports.uploadFavicon = asyncHandler(async (req, res) => handleLogo(req, res, 'favicon'));
+exports.uploadLogo = asyncHandler(async (req, res) =>
+  handleAssetUpload(req, res, 'logo')
+);
+exports.uploadLogoDark = asyncHandler(async (req, res) =>
+  handleAssetUpload(req, res, 'logoDark')
+);
+exports.uploadFavicon = asyncHandler(async (req, res) =>
+  handleAssetUpload(req, res, 'favicon')
+);
+exports.uploadStamp = asyncHandler(async (req, res) =>
+  handleAssetUpload(req, res, 'stampUrl')
+);
+exports.uploadSeal = asyncHandler(async (req, res) =>
+  handleAssetUpload(req, res, 'sealUrl')
+);

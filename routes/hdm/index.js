@@ -21,5 +21,6 @@ router.use('/mongodb', require('./mongodbRoutes'));
 router.use('/health', require('./healthRoutes'));
 router.use('/smartgen-users', require('./smartgenUsersRoutes'));
 router.use('/payment-requests', require('./paymentRequestsRoutes'));
+router.use('/communications', require('./communicationsRoutes'));
 
 module.exports = router;
