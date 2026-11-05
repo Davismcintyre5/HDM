@@ -1,0 +1,7 @@
+# https://www.robotstxt.org/
+
+User-agent: *
+
+Disallow:
+
+Sitemap: https://hdm.co.ke/sitemap.xml
