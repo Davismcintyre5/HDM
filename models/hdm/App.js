@@ -22,9 +22,17 @@ const appSchema = new mongoose.Schema({
   features: [String],
   featured: { type: Boolean, default: false },
   rating: { type: Number, default: 0, min: 0, max: 5 },
+  ratingCount: { type: Number, default: 0 },
+  ratingSource: { type: String, default: '' },
   version: { type: String, default: '1.0.0' },
+  baseViews: { type: Number, default: 0 },
   viewCount: { type: Number, default: 0 },
   likeCount: { type: Number, default: 0 },
+  status: {
+    type: String,
+    enum: ['live', 'development', 'coming_soon'],
+    default: 'coming_soon',
+  },
   isActive: { type: Boolean, default: true },
 }, { timestamps: true, collection: 'hdm_apps' });
 

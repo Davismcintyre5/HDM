@@ -7,5 +7,6 @@ router.get('/featured', limiter.publicRead, ctrl.featured);
 router.get('/categories', limiter.publicRead, ctrl.categories);
 router.get('/:slug', limiter.publicRead, ctrl.getBySlug);
 router.post('/:id/like', limiter.global, ctrl.like);
+router.post('/:id/view', limiter.global, ctrl.incrementView);
 
 module.exports = router;

@@ -39,3 +39,14 @@ exports.like = asyncHandler(async (req, res) => {
   if (!app) throw ApiError.notFound('App not found');
   return ok(res, { likeCount: app.likeCount });
 });
+
+exports.incrementView = asyncHandler(async (req, res) => {
+  const app = await HdmApp.findByIdAndUpdate(
+    req.params.id,
+    { $inc: { viewCount: 1 } },
+    { new: true }
+  ).select('viewCount');
+
+  if (!app) throw ApiError.notFound('App not found');
+  return ok(res, { viewCount: app.viewCount });
+});

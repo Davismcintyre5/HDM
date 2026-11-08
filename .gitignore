@@ -20,11 +20,10 @@ client/.env.development
 # ============================================
 # BUILD OUTPUT
 # ============================================
-# Anchored to root — does NOT match client/dist
 /dist/
 /build/
-
-# client/dist IS tracked (built assets served by server.js)
+client/dist/
+client/build/
 
 # ============================================
 # LOGS

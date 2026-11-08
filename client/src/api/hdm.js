@@ -8,6 +8,7 @@ const hdmApi = {
   getAppCategories: () => client.get('/hdm/api/apps/categories'),
   getAppBySlug: (slug) => client.get(`/hdm/api/apps/${slug}`),
   likeApp: (id) => client.post(`/hdm/api/apps/${id}/like`),
+  incrementAppView: (id) => client.post(`/hdm/api/apps/${id}/view`),
   getProjects: () => client.get('/hdm/api/projects'),
   getFeaturedProjects: () => client.get('/hdm/api/projects/featured'),
   getPhotos: (params) => client.get('/hdm/api/photos', { params }),
