@@ -1,5 +1,5 @@
-import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { resolve } from 'path';
+import { readFileSync, writeFileSync, existsSync, readdirSync, statSync } from 'fs';
+import { resolve, join } from 'path';
 
 const SITE_URL = 'https://hdm.co.ke';
 
@@ -20,7 +20,6 @@ const ROUTES = [
 
 const today = new Date().toISOString().split('T')[0];
 
-// ---- 1. Clean + fix index.html ----
 const indexPath = resolve('dist/index.html');
 if (!existsSync(indexPath)) {
   console.error('❌ dist/index.html not found');
@@ -28,6 +27,14 @@ if (!existsSync(indexPath)) {
 }
 
 let html = readFileSync(indexPath, 'utf-8');
+
+// Ensure viewport meta is present
+if (!html.includes('name="viewport"')) {
+  html = html.replace(
+    /<head([^>]*)>/i,
+    '<head$1>\n    <meta name="viewport" content="width=device-width, initial-scale=1.0" />'
+  );
+}
 
 // Remove plugin junk
 html = html.replace(/<meta name="author" content="[^"]*"\s*\/?>\s*\n?/gi, '');
@@ -62,10 +69,6 @@ html = html.replace('</head>', ogBlock + '</head>');
 writeFileSync(indexPath, html, 'utf-8');
 console.log('✅ dist/index.html cleaned');
 
-// ---- 2. Apply the same favicon fix to every sub-route ----
-import { readdirSync, statSync } from 'fs';
-import { join } from 'path';
-
 function walk(dir) {
   for (const entry of readdirSync(dir)) {
     const full = join(dir, entry);
@@ -73,6 +76,15 @@ function walk(dir) {
       walk(full);
     } else if (entry === 'index.html' && full !== indexPath) {
       let sub = readFileSync(full, 'utf-8');
+
+      // Ensure viewport meta on every sub-route
+      if (!sub.includes('name="viewport"')) {
+        sub = sub.replace(
+          /<head([^>]*)>/i,
+          '<head$1>\n    <meta name="viewport" content="width=device-width, initial-scale=1.0" />'
+        );
+      }
+
       sub = sub.replace(
         /<link rel="icon" href="data:image\/svg\+xml[^>]*>/gi,
         '<link rel="icon" type="image/svg+xml" href="/favicon.svg" />'
@@ -83,7 +95,6 @@ function walk(dir) {
 }
 walk(resolve('dist'));
 
-// ---- 3. Write sitemap.xml directly ----
 const urls = ROUTES.map(
   (r) => `    <url>
         <loc>${SITE_URL}${r.path}</loc>
